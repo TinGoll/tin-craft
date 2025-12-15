@@ -3,9 +3,7 @@ import path from 'path'
 import axios from 'axios'
 import AdmZip from 'adm-zip'
 import { app } from 'electron'
-// import os from 'os'
 
-// Тип для колбэка прогресса
 type ProgressCallback = (status: string, percent: number) => void
 
 class JavaManager {
@@ -20,7 +18,6 @@ class JavaManager {
 
   private getJavaExecutablePath(): string {
     const isWin = process.platform === 'win32'
-    // Базовый путь внутри папки
     const bin = isWin ? 'bin/java.exe' : 'bin/java'
     return path.join(this.rootDir, bin)
   }
@@ -31,7 +28,6 @@ class JavaManager {
   }
 
   private async getDownloadUrl(): Promise<string> {
-    // Маппинг платформы Node.js на параметры API Adoptium
     const osMap: Record<string, string> = {
       win32: 'windows',
       darwin: 'mac',
@@ -95,15 +91,12 @@ class JavaManager {
       writer.on('error', reject)
     })
 
-    // 4. Распаковка
     onProgress('Распаковка архива...', 100)
-    // AdmZip синхронный, для больших файлов может блокировать поток, но для JRE ок
     const zip = new AdmZip(tempZip)
     zip.extractAllTo(this.rootDir, true)
 
     await fs.remove(tempZip)
 
-    // 5. Выравнивание папок (часто внутри zip есть папка jdk-21.x.x, её надо поднять наверх)
     const files = await fs.readdir(this.rootDir)
     const rootFolder = files.find((f) => fs.statSync(path.join(this.rootDir, f)).isDirectory())
 
@@ -119,7 +112,6 @@ class JavaManager {
       await fs.remove(innerPath)
     }
 
-    // Права на выполнение для Unix
     if (process.platform !== 'win32') {
       await fs.chmod(this.javaExec, 0o755)
     }

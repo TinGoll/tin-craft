@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ElectronAPI } from '@electron-toolkit/preload'
 
 // Тип данных профиля
@@ -13,20 +14,16 @@ interface AuthResponse {
 }
 
 interface LauncherAPI {
+  getSettings: () => Promise<void>
+  saveSetting: (key: string, value: any) => Promise<void>
+
   checkJava: () => Promise<string | null>
   installJava: () => Promise<string>
   onJavaProgress: (callback: (data: { status: string; percent: number }) => void) => () => void
-  launchGame: (
-    javaPath: string,
-    username: string,
-    uuid: string,
-    accessToken: string
-  ) => Promise<void>
   updateGame: () => void
   onUpdateProgress: (callback: (data: { status: string; percent: number }) => void) => () => void
-  login: (login: string, pass: string) => Promise<AuthResponse>
-  validateSession: () => Promise<AuthResponse | null>
-  logout: () => Promise<void>
+  launchGame: (javaPath: string, username: string) => Promise<void>
+  onLaunchProgress: (callback: any) => () => void
 }
 
 declare global {

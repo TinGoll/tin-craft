@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, IpcMainInvokeEvent } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -7,7 +7,7 @@ import icon from '../../resources/icon.png?asset'
 import javaManager from './javaManager'
 import gameManager from './gameManager'
 import updateManager from './UpdateManager'
-import authManager from './AuthManager'
+import store from './store'
 
 function createWindow(): void {
   // Create the browser window.
@@ -58,6 +58,10 @@ app.whenReady().then(() => {
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
 
+  // 1. Настройки
+  ipcMain.handle('get-settings', () => store.store)
+  ipcMain.handle('save-setting', (_, key, value) => store.set(key, value))
+
   ipcMain.handle('check-java', async () => {
     return await javaManager.checkJava()
   })
@@ -65,14 +69,12 @@ app.whenReady().then(() => {
   ipcMain.handle('install-java', async (event) => {
     try {
       const javaPath = await javaManager.downloadAndInstall((status, percent) => {
-        // Отправляем сообщение в renderer процесс
-        // Используем уникальный канал для прогресса
         event.sender.send('java-progress', { status, percent })
       })
       return javaPath
     } catch (error) {
       console.error('Java installation error:', error)
-      throw error // Ошибка улетит в renderer
+      throw error
     }
   })
 
@@ -90,40 +92,19 @@ app.whenReady().then(() => {
 
   ipcMain.handle(
     'launch-game',
-    async (_, javaPath: string, username: string, uuid: string, accessToken: string) => {
-      // В реальном проекте UUID и Token должны приходить от твоего бэкенда авторизации
-      // Пока генерируем "фейковые" для теста
-      const dummyUserData = {
+    async (event: IpcMainInvokeEvent, javaPath: string, username: string) => {
+      const user = {
         username: username,
-        uuid: uuid,
-        accessToken: accessToken
+        uuid: '00000000-0000-0000-0000-000000000000',
+        accessToken: 'dummy_token'
       }
+      const win = BrowserWindow.fromWebContents(event.sender)
 
-      try {
-        await gameManager.launchGame(javaPath, dummyUserData)
-        return 'Запуск инициирован'
-      } catch (error) {
-        console.error(error)
-        throw new Error('Could not start the game')
-      }
+      await gameManager.launchGame(javaPath, user, (status, percent) => {
+        win?.webContents.send('launch-progress', { status, percent })
+      })
     }
   )
-
-  // Вход по логину/паролю
-  ipcMain.handle('auth-login', async (_, login, pass) => {
-    return await authManager.login(login, pass)
-  })
-
-  // Проверка сессии при запуске
-  ipcMain.handle('auth-validate', async () => {
-    return await authManager.validate()
-  })
-
-  // Выход
-  ipcMain.handle('auth-logout', async () => {
-    authManager.logout()
-    return true
-  })
 
   createWindow()
 

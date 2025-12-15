@@ -6,22 +6,21 @@ const path = require('path')
 const crypto = require('crypto')
 
 // 1. Настройки
-const BUILD_DIR = path.join(__dirname, 'server-build') // Куда сохраним результат
-const SOURCE_DIR = path.join(__dirname, 'resources') // Где лежат исходные файлы (mods, config)
-const BASE_URL = 'http://localhost:3111/updates' // Ссылка на папку updates на твоем сайте
+const BUILD_DIR = path.join(__dirname, 'server-build')
+const SOURCE_DIR = path.join(__dirname, 'resources')
+const BASE_URL = 'http://localhost:3111/updates'
 
-// Папки, которые хотим включить в обновление
 const INCLUDE_FOLDERS = ['mods', 'config']
-const INCLUDE_FILES = ['forge-installer.jar', 'authlib-injector.jar']
+const INCLUDE_FILES = ['forge-installer.jar', 'options.txt']
 const IGNORE_PATTERNS = [
   'lookupHistory.json',
   'options.txt',
   'servers.dat',
   'servers.dat_old',
-  'jei/world', // Игнорировать всю папку истории JEI
+  'jei/world',
   'lookupHistory.json',
-  '.DS_Store', // Мусор с Mac
-  'thumbs.db', // Мусор с Windows
+  '.DS_Store',
+  'thumbs.db',
   'armoroftheages.json',
   'brutalbosses.json',
   // 'create_better_villagers',
@@ -58,10 +57,9 @@ const IGNORE_PATTERNS = [
   'yacl.json5'
 ]
 
-// Настройка политик для разных папок
 const FOLDER_POLICIES = {
-  mods: 'overwrite', // Моды всегда перезаписываем, если изменились
-  config: 'once' // Конфиги качаем только если их нет
+  mods: 'overwrite',
+  config: 'once'
   // config: 'overwrite'
 }
 
@@ -73,7 +71,6 @@ function getFileHash(filePath) {
   return hashSum.digest('hex')
 }
 
-// Рекурсивный поиск файлов
 function getAllFiles(dirPath, arrayOfFiles) {
   if (!fs.existsSync(dirPath)) return arrayOfFiles || []
 
@@ -94,30 +91,25 @@ function getAllFiles(dirPath, arrayOfFiles) {
 
 const manifest = { files: [] }
 
-// Создаем папку билда
 if (!fs.existsSync(BUILD_DIR)) fs.mkdirSync(BUILD_DIR)
 
 console.log('Генерация манифеста...')
 
-// 1. Обработка Папок
 INCLUDE_FOLDERS.forEach((folder) => {
   const fullPath = path.join(SOURCE_DIR, folder)
   const files = getAllFiles(fullPath)
 
   files.forEach((filePath) => {
-    // Проверка на игнор
     const relativePath = path.relative(SOURCE_DIR, filePath).split(path.sep).join('/')
-
-    // 2. Теперь проверяем Игнор-лист по нормализованному пути
     const isIgnored = IGNORE_PATTERNS.some((pattern) => relativePath.includes(pattern))
 
     if (isIgnored) {
-      console.log(`- [IGNORED] ${relativePath}`) // Полезно видеть, что мы пропустили
+      console.log(`- [IGNORED] ${relativePath}`)
       return
     }
-    // Определяем политику: берем первую часть пути (mods/...) и ищем в настройках
+
     const rootFolder = relativePath.split('/')[0]
-    const policy = FOLDER_POLICIES[rootFolder] || 'overwrite' // По умолчанию overwrite
+    const policy = FOLDER_POLICIES[rootFolder] || 'overwrite'
 
     manifest.files.push({
       path: relativePath,
@@ -130,12 +122,11 @@ INCLUDE_FOLDERS.forEach((folder) => {
   })
 })
 
-// 2. Обработка Одиночных файлов
 INCLUDE_FILES.forEach((fileName) => {
   const filePath = path.join(SOURCE_DIR, fileName)
   if (fs.existsSync(filePath)) {
     manifest.files.push({
-      path: fileName, // Будет лежать в корне minecraft_data
+      path: fileName,
       url: `${BASE_URL}/${fileName}`,
       sha1: getFileHash(filePath),
       size: fs.statSync(filePath).size

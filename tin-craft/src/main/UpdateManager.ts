@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import fs from 'fs-extra'
 import path from 'path'
 import axios from 'axios'
@@ -5,7 +6,7 @@ import crypto from 'crypto'
 import { app } from 'electron'
 
 interface FileEntry {
-  path: string // "mods/jei.jar"
+  path: string
   url: string
   sha1: string
   size: number
@@ -26,7 +27,6 @@ class UpdateManager {
     this.gameRoot = path.join(app.getPath('userData'), 'minecraft_data')
   }
 
-  // Вычисляет SHA1 локального файла
   private async getFileHash(filePath: string): Promise<string | null> {
     if (!(await fs.pathExists(filePath))) return null
 
@@ -40,10 +40,52 @@ class UpdateManager {
     })
   }
 
+  private async cleanUp(remoteFiles: FileEntry[], onProgress: ProgressCallback) {
+    onProgress('Очистка файлов...', 95)
+
+    // Определяем папки под управлением (mods, config)
+    const managedFolders = new Set<string>()
+    remoteFiles.forEach((f) => {
+      const firstPart = f.path.split('/')[0]
+      if (path.extname(firstPart) === '') managedFolders.add(firstPart)
+    })
+
+    const allowedPaths = new Set(
+      remoteFiles.map((f) => path.normalize(path.join(this.gameRoot, f.path)))
+    )
+
+    async function getLocalFiles(dir: string): Promise<string[]> {
+      let results: string[] = []
+      if (!(await fs.pathExists(dir))) return results
+      const list = await fs.readdir(dir)
+      for (const file of list) {
+        const filePath = path.join(dir, file)
+        const stat = await fs.stat(filePath)
+        if (stat.isDirectory()) {
+          results = results.concat(await getLocalFiles(filePath))
+        } else {
+          results.push(filePath)
+        }
+      }
+      return results
+    }
+
+    for (const folder of managedFolders) {
+      const folderPath = path.join(this.gameRoot, folder)
+      const localFiles = await getLocalFiles(folderPath)
+
+      for (const file of localFiles) {
+        if (!allowedPaths.has(path.normalize(file))) {
+          console.log(`Удаление лишнего: ${file}`)
+          await fs.unlink(file)
+        }
+      }
+    }
+  }
+
   public async checkForUpdates(onProgress: ProgressCallback): Promise<void> {
     onProgress('Получение списка файлов...', 0)
 
-    // 1. Скачиваем манифест
     let remoteManifest: Manifest
     try {
       const response = await axios.get(this.manifestUrl)
@@ -57,25 +99,19 @@ class UpdateManager {
     const totalFiles = remoteManifest.files.length
     let processedChecks = 0
 
-    // 2. Сверяем файлы
     for (const file of remoteManifest.files) {
       const localPath = path.join(this.gameRoot, file.path)
 
-      // Сообщаем прогресс
       const percent = Math.round((processedChecks / totalFiles) * 20)
       onProgress(`Проверка: ${file.path}`, percent)
 
-      // --- НОВАЯ ЛОГИКА ---
       const exists = await fs.pathExists(localPath)
-      const policy = file.policy || 'overwrite' // Если в манифесте нет поля, считаем overwrite
+      const policy = file.policy || 'overwrite'
 
       if (!exists) {
-        // Файла нет - нужно качать в любом случае
         filesToDownload.push(file)
       } else {
-        // Файл есть. Смотрим политику.
         if (policy === 'overwrite') {
-          // Если политика "перезапись", проверяем хеш
           const localHash = await this.getFileHash(localPath)
           if (localHash !== file.sha1) {
             console.log(`Update needed (Hash mismatch): ${file.path}`)
@@ -87,7 +123,6 @@ class UpdateManager {
           // console.log(`Skipping config sync: ${file.path}`);
         }
       }
-      // ---------------------
 
       processedChecks++
     }
@@ -97,14 +132,11 @@ class UpdateManager {
       return
     }
 
-    // 3. Скачивание файлов
     let downloadedCount = 0
     const totalDownload = filesToDownload.length
 
     for (const file of filesToDownload) {
       const destPath = path.join(this.gameRoot, file.path)
-
-      // Процент от 20% до 100%
       const currentPercent = 20 + Math.round((downloadedCount / totalDownload) * 80)
       onProgress(`Загрузка: ${path.basename(file.path)}`, currentPercent)
 
@@ -129,7 +161,7 @@ class UpdateManager {
       downloadedCount++
     }
 
-    // await this.cleanUp(remoteManifest.files, onProgress)
+    await this.cleanUp(remoteManifest.files, onProgress)
 
     onProgress('Обновление завершено!', 100)
   }
@@ -150,42 +182,6 @@ class UpdateManager {
       }
     }
     return results
-  }
-
-  // Метод очистки
-  private async cleanUp(remoteFiles: FileEntry[], onProgress: ProgressCallback): Promise<void> {
-    onProgress('Очистка лишних файлов...', 95)
-
-    // 1. Определяем, какие папки мы контролируем (mods, config...)
-    // Извлекаем корневые папки из путей в манифесте
-    const managedFolders = new Set<string>()
-    remoteFiles.forEach((f) => {
-      const firstPart = f.path.split('/')[0]
-      // Если файл в корне (например forge-installer.jar), то firstPart будет самим файлом.
-      // Нас интересуют только папки.
-      if (path.extname(firstPart) === '') {
-        managedFolders.add(firstPart)
-      }
-    })
-
-    // 2. Создаем Set из путей, которые ДОЛЖНЫ быть (нормализуем слеши под ОС)
-    const allowedPaths = new Set(
-      remoteFiles.map((f) => path.normalize(path.join(this.gameRoot, f.path)))
-    )
-
-    // 3. Проходимся по всем управляемым папкам
-    for (const folder of managedFolders) {
-      const folderPath = path.join(this.gameRoot, folder)
-      const localFiles = await this.getLocalFiles(folderPath)
-
-      for (const file of localFiles) {
-        // Если локального файла нет в списке разрешенных -> удаляем
-        if (!allowedPaths.has(path.normalize(file))) {
-          console.log(`Removing an unnecessary file: ${file}`)
-          await fs.unlink(file)
-        }
-      }
-    }
   }
 }
 
