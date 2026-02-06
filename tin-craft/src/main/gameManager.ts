@@ -14,6 +14,7 @@ interface UserData {
 }
 
 type ProgressCallback = (status: string, percent: number) => void
+type ClosedCallback = (code: number) => void
 
 class GameManager {
   private launcher: Client
@@ -29,7 +30,8 @@ class GameManager {
   async launchGame(
     javaPath: string,
     userData: UserData,
-    onProgress: ProgressCallback
+    onProgress: ProgressCallback,
+    onGameClosed: ClosedCallback
   ): Promise<void> {
     const rootPath = path.join(app.getPath('userData'), 'minecraft_data')
     const forgeInstaller = this.getForgeInstallerPath()
@@ -112,7 +114,11 @@ class GameManager {
     })
 
     const subprocess = await this.launcher.launch(opts)
-    subprocess?.on('close', (code) => console.log(`Game closed: ${code}`))
+
+    subprocess?.on('close', (code) => {
+      console.log(`Minecraft closed with a code: ${code}`)
+      onGameClosed(code || 0)
+    })
   }
 }
 

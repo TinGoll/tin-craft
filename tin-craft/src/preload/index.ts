@@ -32,6 +32,11 @@ const api = {
     const sub = (_: any, data: any) => callback(data)
     ipcRenderer.on('launch-progress', sub)
     return () => ipcRenderer.removeListener('launch-progress', sub)
+  },
+  onGameClosed: (callback: (data: { code: number }) => void) => {
+    const sub = (_: any, data: any) => callback(data)
+    ipcRenderer.on('game-closed', sub)
+    return () => ipcRenderer.removeListener('game-closed', sub)
   }
 }
 

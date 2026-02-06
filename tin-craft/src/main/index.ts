@@ -100,9 +100,22 @@ app.whenReady().then(() => {
       }
       const win = BrowserWindow.fromWebContents(event.sender)
 
-      await gameManager.launchGame(javaPath, user, (status, percent) => {
-        win?.webContents.send('launch-progress', { status, percent })
-      })
+      await gameManager.launchGame(
+        javaPath,
+        user,
+        // 1. Прогресс
+        (status, percent) => {
+          win?.webContents.send('launch-progress', { status, percent })
+        },
+        // 2. Игра закрылась (НОВОЕ)
+        (code) => {
+          // Отправляем событие 'game-closed' в React
+          // Проверка win?.isDestroyed() нужна, если пользователь закрыл лаунчер во время игры
+          if (win && !win.isDestroyed()) {
+            win.webContents.send('game-closed', { code })
+          }
+        }
+      )
     }
   )
 

@@ -24,6 +24,7 @@ interface LauncherAPI {
   onUpdateProgress: (callback: (data: { status: string; percent: number }) => void) => () => void
   launchGame: (javaPath: string, username: string) => Promise<void>
   onLaunchProgress: (callback: any) => () => void
+  onGameClosed: (callback: (data: { code: number }) => void) => () => void
 }
 
 declare global {

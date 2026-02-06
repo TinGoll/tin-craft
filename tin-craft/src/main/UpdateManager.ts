@@ -76,7 +76,7 @@ class UpdateManager {
 
       for (const file of localFiles) {
         if (!allowedPaths.has(path.normalize(file))) {
-          console.log(`Удаление лишнего: ${file}`)
+          console.log(`Removing unnecessary: ${file}`)
           await fs.unlink(file)
         }
       }

@@ -1,16 +1,33 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { JSX, useState } from 'react'
+import { JSX, useEffect, useState } from 'react'
 
 function App(): JSX.Element {
   const [status, setStatus] = useState<string>('Готов к игре')
   const [progress, setProgress] = useState<number>(0)
-  const [isBusy, setIsBusy] = useState<boolean>(false)
   const [username, setUsername] = useState<string>('Player')
 
+  const [isBusy, setIsBusy] = useState<boolean>(false)
+  const [isPlaying, setIsPlaying] = useState<boolean>(false)
+
+  useEffect(() => {
+    const unsubGameClosed = window.api.onGameClosed((data: any) => {
+      console.log('Игра закрылась, код:', data.code)
+      setIsPlaying(false)
+      setStatus(data.code === 0 ? 'Игра завершена' : 'Игра крашнулась/закрыта')
+      setProgress(0)
+    })
+
+    return () => {
+      unsubGameClosed()
+    }
+  }, [])
+
   const handlePlay = async () => {
-    if (isBusy) return
+    if (isBusy || isPlaying) return
+
     setIsBusy(true)
+    setProgress(0)
 
     try {
       // 1. JAVA
@@ -41,12 +58,12 @@ function App(): JSX.Element {
 
       const unsubLaunch = window.api.onLaunchProgress((data: any) => {
         setStatus(data.status)
-        // Если MCLC присылает 0% или 100%, обновляем бар.
-        // Если это просто смена текста статуса (например при установке Forge), бар держим полным.
         if (data.percent >= 0) {
           setProgress(data.percent)
         }
       })
+
+      setIsPlaying(true)
 
       await window.api.launchGame(javaPath, username)
       setProgress(100)
@@ -54,11 +71,14 @@ function App(): JSX.Element {
       unsubLaunch()
     } catch (error) {
       console.error(error)
-      setStatus('Ошибка запуска (см. консоль)')
+      setStatus('Ошибка запуска!')
+      setIsPlaying(false)
     } finally {
       setIsBusy(false)
     }
   }
+
+  const isLocked = isBusy || isPlaying
 
   return (
     <div className="container" style={{ padding: 20 }}>
@@ -82,8 +102,17 @@ function App(): JSX.Element {
         )}
       </div>
 
-      <button onClick={handlePlay} disabled={isBusy}>
-        {isBusy ? 'Загрузка...' : 'ИГРАТЬ'}
+      <button
+        onClick={handlePlay}
+        disabled={isLocked}
+        style={{
+          padding: '10px 20px',
+          cursor: isLocked ? 'not-allowed' : 'pointer',
+          backgroundColor: isPlaying ? '#555' : '#4caf50',
+          color: 'white'
+        }}
+      >
+        {isBusy ? 'Подготовка...' : isPlaying ? 'В ИГРЕ' : 'ИГРАТЬ'}
       </button>
     </div>
   )
