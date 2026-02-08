@@ -30,6 +30,7 @@
     "fs-extra": "^11.3.2",
     "minecraft-launcher-core": "^3.18.2",
     "prismarine-nbt": "^2.7.0",
+    "react-icons": "^5.5.0",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
