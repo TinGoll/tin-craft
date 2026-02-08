@@ -49,6 +49,8 @@ body {
   background: var(--color-background);
   line-height: 1.6;
   font-family:
+    'PressStart2P',
+    monospace,
     Inter,
     -apple-system,
     BlinkMacSystemFont,
