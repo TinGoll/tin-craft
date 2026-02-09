@@ -1,0 +1,113 @@
+.mcButton {
+  position: relative;
+  overflow: hidden;
+
+  padding: 18px 30px;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-shadow:
+    -1px -1px 0 #000,
+    -2px -2px 0 rgba(0, 0, 0, 0.5);
+
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  image-rendering: pixelated;
+
+  transition:
+    transform 0.08s ease,
+    box-shadow 0.08s ease,
+    filter 0.1s;
+}
+
+.mcButton::before {
+   content: '';
+  position: absolute;
+  inset: 0;
+
+  background-image: url('/textures/pixel.png');
+  background-repeat: repeat;
+  background-size: 28px 28px;
+
+  opacity: 0.30;
+  image-rendering: pixelated;
+
+  /* МАСКА */
+  -webkit-mask-image: radial-gradient(
+    ellipse at center,
+    transparent 0%,
+    rgba(0, 0, 0, 0.4) 60%,
+    rgba(0, 0, 0, 1) 40%
+  );
+  mask-image: radial-gradient(
+    ellipse at center,
+    transparent 0%,
+    rgba(0, 0, 0, 0.4) 35%,
+    rgba(0, 0, 0, 1) 65%
+  );
+
+  pointer-events: none;
+}
+
+/* .mcButton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0.45) 0%,
+    rgba(255, 255, 255, 0.2) 35%,
+    rgba(255, 255, 255, 0.08) 55%,
+    transparent 70%
+  );
+
+  mix-blend-mode: overlay;
+  pointer-events: none;
+} */
+
+.primary {
+  background: linear-gradient(
+    to bottom,
+    #6cff3a 0%,
+    #32c41a 55%,
+    #1e8f10 100%
+  );
+
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.35),
+    0 6px 0 #0b3f06,
+    0 10px 18px rgba(0, 0, 0, 0.5);
+
+    color: #cbff87;
+}
+
+.default {
+  background: linear-gradient(
+    to bottom,
+    #8a7872 0%,
+    #584d49 55%,
+    #2e2826 100%
+  );
+
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.4),
+    0 6px 0 #161412,
+    0 10px 18px rgba(0, 0, 0, 0.5);
+
+    color: #cfa75d;
+}
+
+.mcButton:hover {
+  filter: brightness(1.15);
+}
+
+.mcButton:active {
+  transform: translateY(4px);
+}
+
