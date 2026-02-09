@@ -25,6 +25,21 @@ interface LauncherAPI {
   launchGame: (javaPath: string, username: string) => Promise<void>
   onLaunchProgress: (callback: any) => () => void
   onGameClosed: (callback: (data: { code: number }) => void) => () => void
+
+  fetch: <T = any>(
+    url: string,
+    options?: RequestInit
+  ) => Promise<{
+    success: boolean
+    data: T | null
+    error: string | null
+  }>
+
+  store: {
+    get<T = any>(key: string): Promise<T>
+    set(key: string, value: any): Promise<void>
+    delete(key: string): Promise<void>
+  }
 }
 
 declare global {

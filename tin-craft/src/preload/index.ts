@@ -8,6 +8,20 @@ const api = {
   // Настройки
   getSettings: () => ipcRenderer.invoke('get-settings'),
   saveSetting: (key: string, value: any) => ipcRenderer.invoke('save-setting', key, value),
+  fetch: <T = any>(url: string, options?: RequestInit) =>
+    ipcRenderer.invoke('api:request', { url, options }) as Promise<{
+      success: boolean
+      data: T | null
+      error: string | null
+    }>,
+
+  store: {
+    get: <T = any>(key: string): Promise<T> => ipcRenderer.invoke('store:get', key),
+
+    set: (key: string, value: any): Promise<void> => ipcRenderer.invoke('store:set', key, value),
+
+    delete: (key: string): Promise<void> => ipcRenderer.invoke('store:delete', key)
+  },
 
   checkJava: (): Promise<string | null> => ipcRenderer.invoke('check-java'),
   installJava: (): Promise<string> => ipcRenderer.invoke('install-java'),
@@ -40,9 +54,6 @@ const api = {
   }
 }
 
-// Use `contextBridge` APIs to expose Electron APIs to
-// renderer only if context isolation is enabled, otherwise
-// just add to the DOM global.
 if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)

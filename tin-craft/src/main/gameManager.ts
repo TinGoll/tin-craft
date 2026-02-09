@@ -108,7 +108,7 @@ class GameManager {
     })
 
     // 4. Запуск процесса игры
-    this.launcher.on('data', (e: any) => {
+    this.launcher.on('data', () => {
       // Когда игра начала писать логи - значит окно почти открылось
       onProgress('Клиент запускается...', 100)
     })
