@@ -11,9 +11,6 @@ type Props = {
 export const Layout: FC<Props> = ({ children }) => {
   return (
     <div className={styles.layout}>
-      {/* <div className={styles.title}>
-        <img className={styles.titleImage} src={title} alt="Title" />
-      </div> */}
       <div className={styles.front}>
         <img className={styles.frontImage} src={front} alt="Front" />
       </div>
