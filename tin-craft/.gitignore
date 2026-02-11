@@ -8,3 +8,5 @@ server-build
 .eslintcache
 *.log*
 .vscode
+.env
+.env.*
