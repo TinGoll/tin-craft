@@ -13,6 +13,7 @@
   z-index: 0;
   top: 0;
   left: 0;
+  user-select: none;
 }
 
 .backgroundImage {
@@ -20,6 +21,7 @@
   object-fit: cover;
   width: 100%;
   height: 100%;
+  user-select: none;
 }
 
 .front {
@@ -31,27 +33,19 @@
   z-index: 2;
 
   pointer-events: none;
+  user-select: none;
 }
 
 .frontImage {
   object-fit: cover;
   width: 100%;
   height: 100%;
+  user-select: none;
 }
-
-/* .title {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 3;
-}
-.titleImage {
-  object-fit: cover;
-} */
 
 .title {
   height: 140px;
+  user-select: none;
 }
 
 .titleImage {
@@ -71,7 +65,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 5rem;
+  padding-bottom: 6rem;
   padding-top: 3rem;
   gap: 24px;
 }
