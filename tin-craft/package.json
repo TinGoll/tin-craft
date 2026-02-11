@@ -28,6 +28,7 @@
     "axios": "^1.13.2",
     "clsx": "^2.1.1",
     "electron-store": "^8.1.0",
+    "es-toolkit": "^1.44.0",
     "fs-extra": "^11.3.2",
     "minecraft-launcher-core": "^3.18.2",
     "prismarine-nbt": "^2.7.0",
