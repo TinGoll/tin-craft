@@ -5,6 +5,9 @@ import { AiFillSkin } from 'react-icons/ai'
 import { FaLock } from 'react-icons/fa6'
 import { useLogin, useRegister } from '../api'
 import { useAuthActions } from '../selectors'
+import { AuthScreenMode, setScreenMode } from '@renderer/screens'
+import { Button } from '@renderer/components/buttons'
+import { useDebouncedLoginValidation } from '../hooks/useDebouncedLoginValidation'
 
 export const RegisterForm: FC = () => {
   const [nickname, setNickname] = useState('')
@@ -13,36 +16,42 @@ export const RegisterForm: FC = () => {
   const {
     isLoading: isRegisterLoading,
     trigger: registerTrigger,
-    isError: isRegisterError
+    isError: isRegisterError,
+    error: registerError
   } = useRegister()
-  const { login } = useAuthActions()
 
   const { isLoading: isLoginLoading, trigger: loginTrigger } = useLogin()
+  const { login } = useAuthActions()
+
+  const { error: loginError, isValidating: isLoginValidating } = useDebouncedLoginValidation(
+    nickname,
+    400
+  )
+
+  const isLoading = isRegisterLoading || isLoginLoading
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
 
+    if (loginError || !nickname || !password) return
+
     try {
       const result = await registerTrigger({ username: nickname, password })
-      if (!result) {
-        throw new Error('Registration failed')
-      }
-      // Optionally, log in the user immediately after registration
-      const loginResult = await loginTrigger({ username: nickname, password })
+      if (!result) throw new Error('Registration failed')
 
-      if (!loginResult) {
-        throw new Error('Login after registration failed')
-      }
+      const loginResult = await loginTrigger({ username: nickname, password })
+      if (!loginResult) throw new Error('Login after registration failed')
+
       login(nickname, loginResult.accessToken)
+      setScreenMode(AuthScreenMode.login)
     } catch (error) {
       console.error('Register error:', error)
     }
   }
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className={styles.form}>
       <h2>Регистрация аккаунта</h2>
-      {(isRegisterLoading || isLoginLoading) && <p>Загрузка...</p>}
       <div className={styles.inputs}>
         <Input
           value={nickname}
@@ -61,10 +70,24 @@ export const RegisterForm: FC = () => {
           autoComplete="current-password"
           icon={<FaLock />}
         />
+        {loginError && <p className={styles.error}>{loginError}</p>}
+        {isRegisterError && <p className={styles.error}>{registerError || 'Ошибка регистрации'}</p>}
       </div>
-      {isRegisterError && <p className={styles.error}>Ошибка регистрации</p>}
 
-      <button type="submit">Зарегистрироваться</button>
+      <div className={styles.buttons}>
+        <Button
+          style={{flex: 1}}
+          variant="primary"
+          loading={isLoading}
+          type="submit"
+          disabled={!!loginError || isLoginValidating || !nickname || !password}
+        >
+          Регистрация
+        </Button>
+        <Button variant="default" onClick={() => setScreenMode(AuthScreenMode.login)}>
+          Отмена
+        </Button>
+      </div>
     </form>
   )
 }

@@ -5,6 +5,8 @@ import { AiFillSkin } from 'react-icons/ai'
 import { FaLock } from 'react-icons/fa6'
 import { useLogin } from '../api'
 import { useAuthActions } from '../selectors'
+import { Button } from '@renderer/components/buttons'
+import { AuthScreenMode, setScreenMode } from '@renderer/screens'
 
 export const LoginForm: FC = () => {
   const { login } = useAuthActions()
@@ -12,10 +14,14 @@ export const LoginForm: FC = () => {
   const [loginValue, setLoginValue] = useState('')
   const [password, setPassword] = useState('')
 
-  const { isLoading, trigger, isError } = useLogin()
+  const { isLoading, trigger, isError, error } = useLogin()
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
+
+    if (!loginValue || !password) {
+      return
+    }
 
     try {
       const result = await trigger({ username: loginValue, password })
@@ -29,9 +35,8 @@ export const LoginForm: FC = () => {
   }
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
-      <h2>Вход в аккаунт</h2>
-      {isLoading && <p>Загрузка...</p>}
+    <form onSubmit={handleSubmit} className={styles.form}>
+      <h2 className={styles.title}>Вход в аккаунт</h2>
       <div className={styles.inputs}>
         <Input
           value={loginValue}
@@ -50,10 +55,16 @@ export const LoginForm: FC = () => {
           autoComplete="current-password"
           icon={<FaLock />}
         />
+        {isError && <p className={styles.error}>{error || 'Неверные учетные данные'}</p>}
       </div>
-      {isError && <p className={styles.error}>Неверные учетные данные</p>}
-
-      <button type="submit">Войти</button>
+      <div className={styles.buttons}>
+        <Button style={{flex: 1}} variant="primary" type="submit" disabled={isLoading}>
+          Войти
+        </Button>
+        <Button variant="secondary" onClick={() => setScreenMode(AuthScreenMode.register)}>
+          Регистрация
+        </Button>
+      </div>
     </form>
   )
 }

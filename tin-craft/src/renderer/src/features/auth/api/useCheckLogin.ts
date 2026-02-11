@@ -1,21 +1,24 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { fetcher } from '@renderer/providers/swr/fetcher'
 import useSWRMutation from 'swr/mutation'
 
 type CheckLoginResponse = {
-  exists: boolean
+  available: boolean
 }
 
 async function checkLogin(
   url: string,
   { arg }: { arg: { login: string } }
 ): Promise<CheckLoginResponse> {
-  const res = await fetch(`${url}?login=${encodeURIComponent(arg.login)}`)
-
-  if (!res.ok) {
-    throw new Error('Request failed')
+  try {
+    const res = await fetcher<CheckLoginResponse>(`${url}?login=${encodeURIComponent(arg.login)}`)
+    return { available: Boolean(res?.available) }
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message)
+    }
+    throw new Error('Failed to check login availability')
   }
-
-  return res.json()
 }
 
 export const useCheckLogin = () => {
@@ -23,7 +26,7 @@ export const useCheckLogin = () => {
 
   return {
     checkLogin: trigger,
-    exists: data?.exists ?? null,
+    available: data?.available ?? null,
     isLoading: isMutating,
     isError: Boolean(error)
   }
