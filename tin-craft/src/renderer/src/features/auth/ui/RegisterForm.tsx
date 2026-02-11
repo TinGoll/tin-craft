@@ -76,7 +76,7 @@ export const RegisterForm: FC = () => {
 
       <div className={styles.buttons}>
         <Button
-          style={{flex: 1}}
+          style={{ flex: 1 }}
           variant="primary"
           loading={isLoading}
           type="submit"

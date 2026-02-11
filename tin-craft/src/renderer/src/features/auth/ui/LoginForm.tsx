@@ -58,7 +58,7 @@ export const LoginForm: FC = () => {
         {isError && <p className={styles.error}>{error || 'Неверные учетные данные'}</p>}
       </div>
       <div className={styles.buttons}>
-        <Button style={{flex: 1}} variant="primary" type="submit" disabled={isLoading}>
+        <Button style={{ flex: 1 }} variant="primary" type="submit" disabled={isLoading}>
           Войти
         </Button>
         <Button variant="secondary" onClick={() => setScreenMode(AuthScreenMode.register)}>

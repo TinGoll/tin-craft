@@ -33,7 +33,7 @@ export const PlayScreen: FC = () => {
         {registry[mode]()}
         <div className={styles.buttons}>
           <Button
-            style={{flex: 1}}
+            style={{ flex: 1 }}
             loading={isPlaying}
             variant="primary"
             onClick={() => setMode('play')}
