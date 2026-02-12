@@ -9,11 +9,14 @@ import gameManager from './gameManager'
 import updateManager from './UpdateManager'
 import store from './store'
 
+let mainWindow: BrowserWindow | null = null
+
 function createWindow(): void {
-  const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+  mainWindow = new BrowserWindow({
+    width: 1200,
+    height: 800,
     show: false,
+    frame: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
@@ -25,7 +28,7 @@ function createWindow(): void {
   })
 
   mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
+    mainWindow?.show()
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -39,10 +42,109 @@ function createWindow(): void {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 }
+
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.electron')
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
+  })
+
+  // ================ ОБРАБОТЧИКИ УПРАВЛЕНИЯ ОКНОМ ================
+
+  /**
+   * Свернуть окно
+   */
+  ipcMain.on('window-minimize', () => {
+    const win = BrowserWindow.getFocusedWindow() || mainWindow
+    if (win) win.minimize()
+  })
+
+  /**
+   * Развернуть/восстановить окно
+   */
+  ipcMain.on('window-maximize', () => {
+    const win = BrowserWindow.getFocusedWindow() || mainWindow
+    if (win) {
+      if (win.isMaximized()) {
+        win.unmaximize()
+      } else {
+        win.maximize()
+      }
+    }
+  })
+
+  /**
+   * Закрыть окно
+   */
+  ipcMain.on('window-close', () => {
+    const win = BrowserWindow.getFocusedWindow() || mainWindow
+    if (win) win.close()
+  })
+
+  /**
+   * Получить состояние окна (развернуто/свернуто)
+   */
+  ipcMain.handle('window-is-maximized', () => {
+    const win = BrowserWindow.getFocusedWindow() || mainWindow
+    return win ? win.isMaximized() : false
+  })
+
+  /**
+   * Получить состояние окна (в фокусе)
+   */
+  ipcMain.handle('window-is-focused', () => {
+    const win = BrowserWindow.getFocusedWindow() || mainWindow
+    return win ? win.isFocused() : false
+  })
+
+  /**
+   * Переместить окно на передний план
+   */
+  ipcMain.on('window-focus', () => {
+    const win = BrowserWindow.getFocusedWindow() || mainWindow
+    if (win) {
+      if (win.isMinimized()) win.restore()
+      win.focus()
+    }
+  })
+
+  /**
+   * Свернуть все окна в трей (опционально)
+   */
+  ipcMain.on('window-hide', () => {
+    const win = BrowserWindow.getFocusedWindow() || mainWindow
+    if (win) win.hide()
+  })
+
+  /**
+   * Показать окно из трея (опционально)
+   */
+  ipcMain.on('window-show', () => {
+    const win = BrowserWindow.getFocusedWindow() || mainWindow
+    if (win) {
+      win.show()
+      win.focus()
+    }
+  })
+
+  /**
+   * Переместить окно (для кастомного drag)
+   */
+  ipcMain.on('window-move', (_, x, y) => {
+    const win = BrowserWindow.getFocusedWindow() || mainWindow
+    if (win && !win.isMaximized()) {
+      win.setPosition(x, y)
+    }
+  })
+
+  /**
+   * Установить размер окна
+   */
+  ipcMain.on('window-resize', (_, width, height) => {
+    const win = BrowserWindow.getFocusedWindow() || mainWindow
+    if (win && !win.isMaximized()) {
+      win.setSize(width, height)
+    }
   })
 
   ipcMain.on('ping', () => console.log('pong'))

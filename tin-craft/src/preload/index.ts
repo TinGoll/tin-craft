@@ -5,6 +5,17 @@ import { electronAPI } from '@electron-toolkit/preload'
 
 // Custom APIs for renderer
 const api = {
+  minimize: () => ipcRenderer.send('window-minimize'),
+  maximize: () => ipcRenderer.send('window-maximize'),
+  close: () => ipcRenderer.send('window-close'),
+  isMaximized: () => ipcRenderer.invoke('window-is-maximized'),
+  isFocused: () => ipcRenderer.invoke('window-is-focused'),
+  focus: () => ipcRenderer.send('window-focus'),
+  hide: () => ipcRenderer.send('window-hide'),
+  show: () => ipcRenderer.send('window-show'),
+  move: (x, y) => ipcRenderer.send('window-move', x, y),
+  resize: (width, height) => ipcRenderer.send('window-resize', width, height),
+
   // Настройки
   getSettings: () => ipcRenderer.invoke('get-settings'),
   saveSetting: (key: string, value: any) => ipcRenderer.invoke('save-setting', key, value),

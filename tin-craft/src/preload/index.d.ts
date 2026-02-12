@@ -14,6 +14,17 @@ interface AuthResponse {
 }
 
 interface LauncherAPI {
+  minimize: () => void
+  maximize: () => void
+  close: () => void
+  isMaximized: () => Promise<boolean>
+  isFocused: () => void
+  focus: () => void
+  hide: () => void
+  show: () => void
+  move: (x: number, y: number) => void
+  resize: (width: number, height: number) => void
+
   getSettings: () => Promise<void>
   saveSetting: (key: string, value: any) => Promise<void>
 

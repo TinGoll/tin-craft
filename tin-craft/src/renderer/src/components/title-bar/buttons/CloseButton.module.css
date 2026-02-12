@@ -1,0 +1,23 @@
+.closeButton {
+  width: 36px;
+  height: 36px;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  background: transparent;
+}
+
+.closeButtonImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: filter 0.3s ease;
+}
+
+.closeButton:hover .closeButtonImg {
+  filter: brightness(0.8);
+}
+
+.closeButton:active .closeButtonImg {
+  filter: brightness(0.6);
+}
