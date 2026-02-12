@@ -1,0 +1,68 @@
+.wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.track {
+  position: relative;
+  width: 100%;
+  height: 46px;
+
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+
+  /* box-shadow:
+    inset 0 0 8px rgba(0, 0, 0, 0.5),
+    0 6px 24px rgba(0, 0, 0, 0.4); */
+
+  text-shadow:
+    1px 1px 0 #000,
+    2px 2px 0 rgba(0, 0, 0, 0.5);
+
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  border-radius: 14px;
+
+  background: linear-gradient(90deg, rgba(88, 255, 168, 0.95), rgba(0, 200, 255, 0.95));
+
+  box-shadow:
+    0 0 14px rgba(0, 200, 255, 0.7),
+    inset 0 0 8px rgba(255, 255, 255, 0.5);
+
+  transition: width 0.1s linear;
+}
+
+/* Проценты по центру */
+.label {
+  position: absolute;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+
+  color: white;
+
+  /* чёрная обводка */
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000,
+    0px 0px 6px rgba(0, 0, 0, 0.8);
+
+  pointer-events: none;
+  user-select: none;
+}
