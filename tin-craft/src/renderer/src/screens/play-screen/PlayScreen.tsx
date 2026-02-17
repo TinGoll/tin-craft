@@ -13,9 +13,7 @@ import {
   useProgress,
   useStatus
 } from './model/play-screen.store'
-import { ProgressBar } from '@renderer/components/progress-bar'
-import { StatusBar } from '@renderer/components/status-bar'
-import { Hint } from '@renderer/components/hint'
+import { Hint, ProgressBar } from '@renderer/components'
 
 export const PlayScreen: FC = () => {
   const { logout } = useAuthActions()
@@ -25,6 +23,22 @@ export const PlayScreen: FC = () => {
   const hintText = useHintText()
   const progress = useProgress()
   const isPlaying = useIsPlaying()
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout | null = null
+
+    if (isPlaying) {
+      timeout = setTimeout(() => {
+        window.api?.close()
+      }, 10000)
+    }
+
+    return () => {
+      if (timeout) {
+        clearTimeout(timeout)
+      }
+    }
+  }, [isPlaying])
 
   useEffect(() => {
     const unsubGameClosed = window.api.onGameClosed((data) => {
@@ -106,9 +120,11 @@ export const PlayScreen: FC = () => {
     <div className={styles.screen}>
       <div className={styles.inventory}>
         <div className={styles.feedback}>
-          <StatusBar className={styles.statusBar} text={status} />
+          <h2 className={styles.user}>
+            Привет <span>{nickname}</span>!
+          </h2>
           <Hint className={styles.hint} text={hintText} disableTypingEffect={!hintText} />
-          <ProgressBar progress={progress} />
+          <ProgressBar progress={progress} status={status} />
         </div>
         <div className={styles.buttons}>
           <Button style={{ flex: 1 }} loading={isLocked} variant="primary" onClick={handlePlay}>

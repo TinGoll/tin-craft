@@ -1,2 +1,6 @@
 export * from './inputs'
 export * from './layout'
+export * from './progress-bar'
+export * from './status-bar'
+export * from './title-bar'
+export * from './hint'

@@ -19,7 +19,11 @@
 }
 
 .user {
-  color: rgb(51, 255, 0);
+  margin-left: 8px;
+}
+
+.user span {
+  color: gold;
 }
 
 .buttons {

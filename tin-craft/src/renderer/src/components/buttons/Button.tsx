@@ -1,6 +1,7 @@
 import { FC, ReactNode } from 'react'
 import styles from './Button.module.css'
 import clsx from 'clsx'
+import { SoundButton } from './SoundButton'
 
 type ButtonVariant = 'default' | 'primary' | 'secondary' | 'danger'
 
@@ -23,7 +24,7 @@ export const Button: FC<Props> = ({
   ...props
 }) => {
   return (
-    <button
+    <SoundButton
       {...props}
       disabled={loading || disabled}
       className={clsx(styles.mcButton, styles[variant], className)}
@@ -34,6 +35,6 @@ export const Button: FC<Props> = ({
         icon && <span className={styles.icon}>{icon}</span>
       )}
       {children}
-    </button>
+    </SoundButton>
   )
 }
