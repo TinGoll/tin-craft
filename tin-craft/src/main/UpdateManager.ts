@@ -5,13 +5,14 @@ import axios from 'axios'
 import crypto from 'crypto'
 import { app } from 'electron'
 import { pipeline } from 'stream/promises'
+import store from './store'
 
 interface FileEntry {
   path: string
   url: string
   sha1: string
   size: number
-  policy?: 'overwrite' | 'once'
+  policy?: 'overwrite' | 'once' | 'force_once'
 }
 
 interface Manifest {
@@ -119,6 +120,14 @@ class UpdateManager {
           }
         } else if (policy === 'once') {
           console.log(`Skip (file already exists): ${file.path}`)
+        } else if (policy === 'force_once') {
+          const applied = store.get(`appliedForceUpdates.${file.path}`, false)
+          if (!applied) {
+            console.log(`Force updating once: ${file.path}`)
+            filesToDownload.push(file)
+          } else {
+            console.log(`Skip (force_once already applied): ${file.path}`)
+          }
         }
       }
 
@@ -160,6 +169,9 @@ class UpdateManager {
       try {
         await pipeline(response.data, writer)
         await fs.rename(tmpPath, destPath)
+        if (file.policy === 'force_once') {
+          store.set(`appliedForceUpdates.${file.path}`, true)
+        }
       } catch (err) {
         console.error(`Ошибка при скачивании ${file.path}:`, err)
         if (await fs.pathExists(tmpPath)) {

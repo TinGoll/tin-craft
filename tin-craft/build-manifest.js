@@ -16,7 +16,8 @@ const IGNORE_PATTERNS = ['.DS_Store', 'Thumbs.db']
 
 const FOLDER_POLICIES = {
   mods: 'overwrite',
-  config: 'once'
+  config: 'once',
+  special: 'force_once'
 }
 
 // Хелпер для хэша файла
@@ -81,9 +82,9 @@ INCLUDE_FILES.forEach((fileName) => {
       url: encodeURI(`${BASE_URL}/${fileName}`),
       sha1: getFileHash(filePath),
       size: fs.statSync(filePath).size,
-      policy: 'once'
+      policy: 'force_once'
     })
-    console.log(`+ [ONCE] ${fileName}`)
+    console.log(`+ [FORCE_ONCE] ${fileName}`)
   } else {
     console.warn(`WARNING: Файл ${fileName} не найден!`)
   }

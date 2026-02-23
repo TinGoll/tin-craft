@@ -7,7 +7,8 @@ const store = new Store({
     javaPath: null,
     accessToken: null,
     user: null,
-    auth_accessToken: null
+    auth_accessToken: null,
+    appliedForceUpdates: {}
   }
 })
 
