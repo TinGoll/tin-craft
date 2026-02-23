@@ -114,11 +114,11 @@ class UpdateManager {
         if (policy === 'overwrite') {
           const localHash = await this.getFileHash(localPath)
           if (localHash !== file.sha1) {
-            console.log(`Нужно обновить (хэш не совпадает): ${file.path}`)
+            console.log(`Needs to be updated (hash doesn't match): ${file.path}`)
             filesToDownload.push(file)
           }
         } else if (policy === 'once') {
-          console.log(`Пропуск (файл уже существует): ${file.path}`)
+          console.log(`Skip (file already exists): ${file.path}`)
         }
       }
 
