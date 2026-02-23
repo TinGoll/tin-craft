@@ -1,6 +1,7 @@
 import { FC, useEffect, useState } from 'react'
 import styles from './TitleBar.module.css'
 import { CloseButton, MaximizeButton, MinimizeButton } from './buttons'
+import { Logo } from '../logo'
 
 export const TitleBar: FC = () => {
   const [isMaximized, setIsMaximized] = useState(false)
@@ -18,7 +19,9 @@ export const TitleBar: FC = () => {
 
   return (
     <div className={styles.titleBar2}>
-      <div className={styles.title} />
+      <div className={styles.title}>
+        <Logo />
+      </div>
       <div className={styles.windowControls}>
         <MinimizeButton onClick={handleMinimize} />
         <MaximizeButton onClick={handleMaximize} />
