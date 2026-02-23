@@ -43,8 +43,8 @@ class GameManager {
     this.launcher.removeAllListeners('close')
 
     await serverListManager.addServerToList(rootPath, {
-      name: 'My Server Project',
-      ip: '127.0.0.1:25565'
+      name: 'TinCraft Server',
+      ip: 'tincraft.minerent.io'
     })
 
     if (!fs.existsSync(forgeInstaller)) {
@@ -70,7 +70,7 @@ class GameManager {
       memory: { max: memoryMax, min: memoryMin },
       quickPlay: {
         type: 'multiplayer',
-        identifier: 'localhost:25565'
+        identifier: 'tincraft.minerent.io'
       }
     }
 

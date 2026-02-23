@@ -4,6 +4,7 @@ import path from 'path'
 import axios from 'axios'
 import crypto from 'crypto'
 import { app } from 'electron'
+import { pipeline } from 'stream/promises'
 
 interface FileEntry {
   path: string
@@ -20,15 +21,19 @@ interface Manifest {
 type ProgressCallback = (status: string, percent: number) => void
 
 class UpdateManager {
-  private manifestUrl = 'http://localhost:3111/updates/manifest.json' // ТВОЙ URL
+  private manifestUrl = 'http://localhost:3111/updates/manifest.json'
   private gameRoot: string
+
+  private strictFolders = ['mods']
 
   constructor() {
     this.gameRoot = path.join(app.getPath('userData'), 'minecraft_data')
   }
 
   private async getFileHash(filePath: string): Promise<string | null> {
-    if (!(await fs.pathExists(filePath))) return null
+    if (!(await fs.pathExists(filePath))) {
+      return null
+    }
 
     return new Promise((resolve, reject) => {
       const hash = crypto.createHash('sha1')
@@ -43,18 +48,11 @@ class UpdateManager {
   private async cleanUp(remoteFiles: FileEntry[], onProgress: ProgressCallback) {
     onProgress('Очистка файлов...', 95)
 
-    // Определяем папки под управлением (mods, config)
-    const managedFolders = new Set<string>()
-    remoteFiles.forEach((f) => {
-      const firstPart = f.path.split('/')[0]
-      if (path.extname(firstPart) === '') managedFolders.add(firstPart)
-    })
-
     const allowedPaths = new Set(
       remoteFiles.map((f) => path.normalize(path.join(this.gameRoot, f.path)))
     )
 
-    async function getLocalFiles(dir: string): Promise<string[]> {
+    const getLocalFiles = async (dir: string): Promise<string[]> => {
       let results: string[] = []
       if (!(await fs.pathExists(dir))) return results
       const list = await fs.readdir(dir)
@@ -70,13 +68,13 @@ class UpdateManager {
       return results
     }
 
-    for (const folder of managedFolders) {
+    for (const folder of this.strictFolders) {
       const folderPath = path.join(this.gameRoot, folder)
       const localFiles = await getLocalFiles(folderPath)
 
       for (const file of localFiles) {
         if (!allowedPaths.has(path.normalize(file))) {
-          console.log(`Removing unnecessary: ${file}`)
+          console.log(`Removing an unnecessary file: ${file}`)
           await fs.unlink(file)
         }
       }
@@ -99,11 +97,13 @@ class UpdateManager {
     const totalFiles = remoteManifest.files.length
     let processedChecks = 0
 
+    // Проверка файлов
     for (const file of remoteManifest.files) {
       const localPath = path.join(this.gameRoot, file.path)
 
-      const percent = Math.round((processedChecks / totalFiles) * 20)
-      onProgress(`Проверка: ${file.path}`, percent)
+      // Прогресс проверки: от 0 до 10%
+      const percent = Math.round((processedChecks / totalFiles) * 10)
+      onProgress(`Проверка: ${path.basename(file.path)}`, percent)
 
       const exists = await fs.pathExists(localPath)
       const policy = file.policy || 'overwrite'
@@ -114,13 +114,11 @@ class UpdateManager {
         if (policy === 'overwrite') {
           const localHash = await this.getFileHash(localPath)
           if (localHash !== file.sha1) {
-            console.log(`Update needed (Hash mismatch): ${file.path}`)
+            console.log(`Нужно обновить (хэш не совпадает): ${file.path}`)
             filesToDownload.push(file)
           }
         } else if (policy === 'once') {
-          // Если политика "один раз" и файл существует - ПРОПУСКАЕМ
-          // (Мы игнорируем несовпадение хешей, сохраняя настройки игрока)
-          // console.log(`Skipping config sync: ${file.path}`);
+          console.log(`Пропуск (файл уже существует): ${file.path}`)
         }
       }
 
@@ -128,60 +126,52 @@ class UpdateManager {
     }
 
     if (filesToDownload.length === 0) {
+      await this.cleanUp(remoteManifest.files, onProgress)
       onProgress('Обновлений нет, запуск...', 100)
       return
     }
 
-    let downloadedCount = 0
-    const totalDownload = filesToDownload.length
+    // Подготовка к скачиванию (Считаем общий размер для плавного прогресса)
+    const totalBytesToDownload = filesToDownload.reduce((acc, file) => acc + file.size, 0)
+    let downloadedBytes = 0
 
     for (const file of filesToDownload) {
       const destPath = path.join(this.gameRoot, file.path)
-      const currentPercent = 20 + Math.round((downloadedCount / totalDownload) * 80)
-      onProgress(`Загрузка: ${path.basename(file.path)}`, currentPercent)
+      const tmpPath = `${destPath}.tmp` // Временный файл
 
       await fs.ensureDir(path.dirname(destPath))
 
-      const writer = fs.createWriteStream(destPath)
       const response = await axios({
         url: file.url,
         method: 'GET',
         responseType: 'stream'
       })
 
-      response.data.pipe(writer)
-
-      await new Promise((resolve, reject) => {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        writer.on('finish', resolve)
-        writer.on('error', reject)
+      response.data.on('data', (chunk: Buffer) => {
+        downloadedBytes += chunk.length
+        // Прогресс скачивания: от 10% до 95%
+        const currentPercent = 10 + Math.round((downloadedBytes / totalBytesToDownload) * 85)
+        // Ограничиваем 95%, чтобы оставить место для этапа очистки
+        onProgress(`Загрузка: ${path.basename(file.path)}`, Math.min(currentPercent, 95))
       })
 
-      downloadedCount++
+      const writer = fs.createWriteStream(tmpPath)
+
+      try {
+        await pipeline(response.data, writer)
+        await fs.rename(tmpPath, destPath)
+      } catch (err) {
+        console.error(`Ошибка при скачивании ${file.path}:`, err)
+        if (await fs.pathExists(tmpPath)) {
+          await fs.unlink(tmpPath)
+        }
+        throw new Error(`Ошибка скачивания файла: ${file.path}`)
+      }
     }
 
     await this.cleanUp(remoteManifest.files, onProgress)
 
     onProgress('Обновление завершено!', 100)
-  }
-
-  private async getLocalFiles(dir: string): Promise<string[]> {
-    let results: string[] = []
-    if (!(await fs.pathExists(dir))) return results
-
-    const list = await fs.readdir(dir)
-    for (const file of list) {
-      const filePath = path.join(dir, file)
-      const stat = await fs.stat(filePath)
-      if (stat && stat.isDirectory()) {
-        const subFiles = await this.getLocalFiles(filePath)
-        results = results.concat(subFiles)
-      } else {
-        results.push(filePath)
-      }
-    }
-    return results
   }
 }
 

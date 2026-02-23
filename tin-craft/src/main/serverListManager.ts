@@ -12,7 +12,6 @@ interface ServerEntry {
   acceptTextures?: number
 }
 class ServerListManager {
-  // 1. Создаем NBT-объект для одного сервера
   private createServerNbt(s: ServerEntry) {
     return {
       ip: { type: 'string', value: s.ip },
@@ -22,7 +21,6 @@ class ServerListManager {
     }
   }
 
-  // 2. Генератор полной структуры файла из списка серверов
   private generateNbtStructure(servers: ServerEntry[]) {
     const nbtList = servers.map((s) => this.createServerNbt(s))
 
@@ -33,7 +31,7 @@ class ServerListManager {
         servers: {
           type: 'list',
           value: {
-            type: 'compound', // Явно указываем тип элементов списка
+            type: 'compound',
             value: nbtList
           }
         }
@@ -66,7 +64,6 @@ class ServerListManager {
     try {
       let currentServers: ServerEntry[] = []
 
-      // Шаг 1: Читаем текущий файл (если есть)
       if (await fs.pathExists(serversDatPath)) {
         try {
           const data = await fs.readFile(serversDatPath)

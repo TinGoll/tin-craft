@@ -5,7 +5,7 @@ import axios from 'axios'
 import { v4 as uuidv4 } from 'uuid'
 import store from './store'
 
-const AUTH_SERVER_URL = 'https://tvoysite.com/api/yggdrasil'
+const AUTH_SERVER_URL = 'https://tincraft.ru/auth/yggdrasil'
 
 interface AuthProfile {
   id: string // UUID
@@ -20,10 +20,7 @@ interface AuthResponse {
 }
 
 class AuthManager {
-  // 1. Вход по Логину и Паролю
   async login(login: string, pass: string): Promise<AuthResponse> {
-    // clientToken - это уникальный ID самой установки лаунчера.
-    // Его надо сгенерировать 1 раз и сохранить, чтобы сессия не слетала.
     let clientToken = store.get('clientToken')
     if (!clientToken) {
       clientToken = uuidv4()
@@ -31,7 +28,6 @@ class AuthManager {
     }
 
     try {
-      // Стандартный запрос Yggdrasil
       const response = await axios.post(`${AUTH_SERVER_URL}/authserver/authenticate`, {
         agent: {
           name: 'Minecraft',
@@ -45,7 +41,6 @@ class AuthManager {
 
       const data = response.data
 
-      // Сохраняем данные для авто-входа
       store.set('auth_accessToken', data.accessToken)
       store.set('auth_uuid', data.selectedProfile.id)
       store.set('auth_name', data.selectedProfile.name)
@@ -61,8 +56,6 @@ class AuthManager {
     }
   }
 
-  // 2. Авто-вход (Валидация токена)
-  // Проверяет, жив ли токен с прошлого раза
   async validate(): Promise<AuthResponse | null> {
     const accessToken = store.get('auth_accessToken')
     const clientToken = store.get('clientToken')
@@ -80,12 +73,11 @@ class AuthManager {
 
       // Если сервер ответил 204 No Content, значит токен жив
       return {
-        accessToken,
+        accessToken: accessToken as string,
         clientToken: clientToken as string,
         selectedProfile: { id: uuid as string, name: name as string }
       }
     } catch (error) {
-      // Если токен протух - пробуем /refresh (иногда токены живут недолго)
       try {
         const refresh = await axios.post(`${AUTH_SERVER_URL}/authserver/refresh`, {
           accessToken: accessToken,
@@ -93,7 +85,7 @@ class AuthManager {
         })
 
         const newData = refresh.data
-        store.set('auth_accessToken', newData.accessToken) // Обновляем токен
+        store.set('auth_accessToken', newData.accessToken)
 
         return {
           accessToken: newData.accessToken,
@@ -101,7 +93,6 @@ class AuthManager {
           selectedProfile: newData.selectedProfile
         }
       } catch (e) {
-        // Если и refresh не помог - сбрасываем вход
         console.log('Session expired')
         return null
       }
@@ -110,9 +101,7 @@ class AuthManager {
 
   // 3. Выход
   logout() {
-    // Можно отправить /invalidate на сервер, но для простоты просто чистим стор
     store.delete('auth_accessToken')
-    // clientToken удалять НЕ надо
   }
 
   // Геттер URL для инжектора
