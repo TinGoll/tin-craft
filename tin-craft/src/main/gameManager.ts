@@ -36,7 +36,6 @@ class GameManager {
     const rootPath = path.join(app.getPath('userData'), 'minecraft_data')
     const forgeInstaller = this.getForgeInstallerPath()
 
-    // 0. Очистка старых слушателей (Важно!)
     this.launcher.removeAllListeners('progress')
     this.launcher.removeAllListeners('download')
     this.launcher.removeAllListeners('debug')
@@ -77,12 +76,9 @@ class GameManager {
 
     console.log(`Launch Minecraft 1.21.1 (NeoForge) from Java: ${javaPath}`)
 
-    // 1. Прогресс загрузки файлов (assets, libraries)
     this.launcher.on('progress', (e: any) => {
-      // e: { type: 'assets', task: 120, total: 1050 }
       if (e.total > 0) {
         const percent = Math.round((e.task / e.total) * 100)
-        // Переводим типы на русский для красоты
         let typeName = e.type
         if (e.type === 'assets') typeName = 'Ассеты'
         if (e.type === 'natives') typeName = 'Библиотеки'
@@ -93,12 +89,11 @@ class GameManager {
     })
 
     this.launcher.on('download', (_e: string) => {
-      // e - это имя файла. Можно обновлять статус, но без процента, чтобы не дергалось.
-      // onProgress(`Скачивание: ${e}`, -1); // -1 чтобы не менять percent
+      // e - это имя файла.
+      // onProgress(`Скачивание: ${e}`, -1);
     })
 
     // 3. Отладка и установка Forge
-    // Forge пишет свои логи в событие 'debug' или 'data' во время установки
     this.launcher.on('debug', (e: string) => {
       const log = e.toString()
       // Фильтруем важные сообщения от Forge Installer
@@ -109,7 +104,6 @@ class GameManager {
 
     // 4. Запуск процесса игры
     this.launcher.on('data', () => {
-      // Когда игра начала писать логи - значит окно почти открылось
       onProgress('Клиент запускается...', 100)
     })
 
