@@ -8,7 +8,7 @@ const crypto = require('crypto')
 // 1. Настройки
 const BUILD_DIR = path.join(__dirname, 'server-build')
 const SOURCE_DIR = path.join(__dirname, 'resources')
-const BASE_URL = 'http://localhost:3111/updates'
+const BASE_URL = 'https://tincraft.ru/updates'
 
 const INCLUDE_FOLDERS = ['mods', 'config']
 const INCLUDE_FILES = ['forge-installer.jar', 'options.txt']

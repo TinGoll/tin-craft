@@ -22,7 +22,7 @@ interface Manifest {
 type ProgressCallback = (status: string, percent: number) => void
 
 class UpdateManager {
-  private manifestUrl = 'http://localhost:3111/updates/manifest.json'
+  private manifestUrl = 'https://tincraft.ru/updates/manifest.json'
   private gameRoot: string
 
   private strictFolders = ['mods']
