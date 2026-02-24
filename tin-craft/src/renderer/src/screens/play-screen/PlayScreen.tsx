@@ -29,7 +29,7 @@ export const PlayScreen: FC = () => {
 
     if (isPlaying) {
       timeout = setTimeout(() => {
-        window.api?.close()
+        // window.api?.close()
       }, 10000)
     }
 
