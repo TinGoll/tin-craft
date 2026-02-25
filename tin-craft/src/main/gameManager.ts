@@ -48,11 +48,14 @@ class GameManager {
     })
 
     if (!fs.existsSync(forgeInstaller)) {
-      throw new Error('Forge Installer не найден! Проверьте обновление.')
+      throw new Error('Forge Installer Not found! Check for updates.')
     }
 
     const memoryMax = store.get('maxMemory', '4G')
     const memoryMin = store.get('minMemory', '2G')
+
+    console.log('javaPath', javaPath);
+    
 
     const opts: ILauncherOptions = {
       authorization: {
@@ -68,10 +71,10 @@ class GameManager {
       version: { number: '1.21.1', type: 'release' },
       forge: forgeInstaller,
       memory: { max: memoryMax, min: memoryMin },
-      quickPlay: {
-        type: 'multiplayer',
-        identifier: 'localhost:25565'
-      }
+      // quickPlay: {
+      //   type: 'multiplayer',
+      //   identifier: 'localhost:25565'
+      // }
     }
 
     console.log(`Launch Minecraft 1.21.1 (NeoForge) from Java: ${javaPath}`)
