@@ -71,6 +71,9 @@ class GameManager {
       quickPlay: {
         type: 'multiplayer',
         identifier: 'tincraft.minerent.io'
+      },
+      window: {
+        fullscreen: true
       }
     }
 
