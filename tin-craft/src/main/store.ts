@@ -8,7 +8,13 @@ const store = new Store({
     accessToken: null,
     user: null,
     auth_accessToken: null,
-    appliedForceUpdates: {}
+    appliedForceUpdates: {},
+    hasFirstLaunch: false,
+    lastSuccessLoginUsers: {},
+    settings: {
+      autoLogin: false,
+      rememberPassword: false
+    }
   }
 })
 

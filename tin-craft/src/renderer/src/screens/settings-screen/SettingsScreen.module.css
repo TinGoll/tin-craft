@@ -1,0 +1,29 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  height: 380px;
+  width: 600px;
+  /* background-color: hsla(210, 50%, 40%, 0.6); */
+  background-color: rgba(37, 33, 28, 0.8);
+  box-shadow: 0 0 0 6px rgba(80, 71, 60, 0.6);
+}
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.memorySettings {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}

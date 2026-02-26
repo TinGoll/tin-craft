@@ -1,4 +1,4 @@
-import { FC, useState } from 'react'
+import { FC, useEffect, useRef, useState } from 'react'
 import styles from './Form.module.css'
 import { Input } from '../../../components/inputs'
 import { AiFillSkin } from 'react-icons/ai'
@@ -7,12 +7,28 @@ import { useLogin } from '../api'
 import { useAuthActions } from '../selectors'
 import { Button } from '@renderer/components/buttons'
 import { AuthScreenMode, setScreenMode } from '@renderer/screens'
+import { LAST_SUCCESS_LOGIN_USERS_KEY } from '../types'
 
 export const LoginForm: FC = () => {
-  const { login } = useAuthActions()
+  const { login, addSuccessLoginUser } = useAuthActions()
 
   const [loginValue, setLoginValue] = useState('')
   const [password, setPassword] = useState('')
+  const autofilledRef = useRef(false)
+
+  useEffect(() => {
+    if (autofilledRef.current) return
+
+    window.api.store.get<Record<string, string>>(LAST_SUCCESS_LOGIN_USERS_KEY).then((users) => {
+      if (!users) return
+
+      const userData = users[loginValue.toLowerCase()]
+      if (userData) {
+        setPassword(userData)
+        autofilledRef.current = true
+      }
+    })
+  }, [loginValue])
 
   const { isLoading, trigger, isError, error } = useLogin()
 
@@ -29,6 +45,7 @@ export const LoginForm: FC = () => {
         throw new Error('Invalid login or password')
       }
       login(result.username, result.accessToken)
+      addSuccessLoginUser(result.username, password)
     } catch (error) {
       console.error('Login error:', error)
     }

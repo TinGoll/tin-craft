@@ -14,15 +14,18 @@ import {
   useStatus
 } from './model/play-screen.store'
 import { Hint, ProgressBar } from '@renderer/components'
+import { useMinecraftHints } from './hooks/useMinecraftHints'
 
 export const PlayScreen: FC = () => {
-  const { logout } = useAuthActions()
+  const { logout, setHasFirstLaunch } = useAuthActions()
   const nickname = useAuthUser()
   const isBusy = useIsBusy()
   const status = useStatus()
   const hintText = useHintText()
   const progress = useProgress()
   const isPlaying = useIsPlaying()
+
+  const { start } = useMinecraftHints()
 
   useEffect(() => {
     let timeout: NodeJS.Timeout | null = null
@@ -58,6 +61,7 @@ export const PlayScreen: FC = () => {
       setStatus('Ошибка: пользователь не найден')
       return
     }
+    start()
 
     if (isBusy || isPlaying) {
       return
@@ -106,6 +110,7 @@ export const PlayScreen: FC = () => {
       setProgress(100)
       setStatus('Игра запущена! Приятной игры.')
       unsubLaunch()
+      setHasFirstLaunch(true)
     } catch (error) {
       console.error('Ошибка при запуске игры:', error)
       setStatus('Ошибка при запуске игры')

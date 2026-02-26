@@ -74,6 +74,8 @@ class GameManager {
       }
     }
 
+    console.log('options', opts)
+
     console.log(`Launch Minecraft 1.21.1 (NeoForge) from Java: ${javaPath}`)
 
     this.launcher.on('progress', (e: any) => {
@@ -103,8 +105,12 @@ class GameManager {
     })
 
     // 4. Запуск процесса игры
-    this.launcher.on('data', () => {
-      onProgress('Клиент запускается...', 100)
+    this.launcher.on('data', (d) => {
+      const data = d.toString()
+      if (data.includes('ModLauncher running')) {
+        console.log('Minecraft launched!')
+        onProgress('Клиент запущен!', 100)
+      }
     })
 
     const subprocess = await this.launcher.launch(opts)
