@@ -13,7 +13,9 @@ const store = new Store({
     lastSuccessLoginUsers: {},
     settings: {
       autoLogin: false,
-      rememberPassword: false
+      rememberPassword: false,
+      showLauncher: true,
+      fullScreen: false
     }
   }
 })

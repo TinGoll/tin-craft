@@ -53,6 +53,7 @@ class GameManager {
 
     const memoryMax = store.get('maxMemory', '4G')
     const memoryMin = store.get('minMemory', '2G')
+    const fullscreen = store.get('settings.fullscreen', false)
 
     const opts: ILauncherOptions = {
       authorization: {
@@ -73,8 +74,10 @@ class GameManager {
         identifier: 'tincraft.minerent.io'
       },
       window: {
-        fullscreen: true
-      }
+        fullscreen: fullscreen
+      },
+      clientPackage: 'https://tincraft.ru/updates/libraries.zip',
+      removePackage: true
     }
 
     console.log('options', opts)

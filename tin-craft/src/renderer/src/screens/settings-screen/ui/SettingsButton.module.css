@@ -1,0 +1,48 @@
+.settingsButton {
+  padding: 6px 12px;
+  font-size: 28px;
+  text-shadow:
+    1px 1px 0 #000,
+    1px 1px 0 rgba(0, 0, 0, 0.5);
+  font-weight: bold;
+
+  background: linear-gradient(to bottom, #7a7a7a 0%, #5c5c5c 100%);
+  border: 4px solid #2e5d1f;
+
+  color: #ffffff;
+  font-family: 'Minecraft', monospace;
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+
+  cursor: pointer;
+  user-select: none;
+
+  transition: all 0.1s ease-in-out;
+}
+
+.settingsButton:hover {
+  transform: translateY(-2px);
+}
+
+.settingsButton:active:not(:disabled) {
+  transform: translateY(4px);
+}
+
+.settingsButton:disabled {
+  background: linear-gradient(to bottom, #6cc24a 0%, #5fa33f 100%);
+
+  border-color: #2e5d1f;
+  color: #cfcfcf;
+  cursor: not-allowed;
+
+  transform: translateY(4px);
+}
+
+.settingsButton.toggled {
+  background: linear-gradient(to bottom, #6cc24a 0%, #5fa33f 100%);
+
+  border-color: #2e5d1f;
+  color: #fdfdfd;
+  transform: translateY(4px);
+}

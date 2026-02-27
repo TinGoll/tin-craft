@@ -1,1 +1,1 @@
-export * from './MemoryButton'
+export * from './SettingsButton'

@@ -2,21 +2,20 @@ import { FC, useEffect } from 'react'
 import { Layout } from './components'
 import { useAuthActions, useAuthLoading, useAuthUser } from './features/auth'
 import { AuthScreen, PlayScreen, SettingsScreen } from './screens'
-import { useShowSettingsScreen } from './features/settings'
-import { initMemory, useMemoryLoading } from './features/memory-manager'
+import { initSettings, useSettingsLoading, useShowSettingsScreen } from './features/settings'
 
 export const App: FC = () => {
   const { init } = useAuthActions()
   const loadingAuth = useAuthLoading()
-  const loadingMemory = useMemoryLoading()
+  const loadingSettings = useSettingsLoading()
 
   const user = useAuthUser()
   const settingsScreen = useShowSettingsScreen()
-  const loading = loadingAuth || loadingMemory
+  const loading = loadingAuth || loadingSettings
 
   useEffect(() => {
     init()
-    initMemory()
+    initSettings()
   }, [init])
 
   if (loading) {
