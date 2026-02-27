@@ -223,6 +223,16 @@ app.whenReady().then(() => {
     }
   )
 
+  ipcMain.handle('hard-reset', async (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+
+    await gameManager.hardResetGame((status, percent) => {
+      win?.webContents.send('launch-progress', { status, percent })
+    })
+
+    return true
+  })
+
   createWindow()
 
   app.on('activate', function () {

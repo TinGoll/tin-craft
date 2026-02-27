@@ -17,6 +17,7 @@ const api = {
   resize: (width, height) => ipcRenderer.send('window-resize', width, height),
 
   // Настройки
+  hardReset: () => ipcRenderer.invoke('hard-reset'),
   getSettings: () => ipcRenderer.invoke('get-settings'),
   saveSetting: (key: string, value: any) => ipcRenderer.invoke('save-setting', key, value),
   fetch: <T = any>(url: string, options?: RequestInit) =>

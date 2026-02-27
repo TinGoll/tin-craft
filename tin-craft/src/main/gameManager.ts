@@ -6,6 +6,7 @@ import path from 'path'
 import fs from 'fs-extra'
 import store from './store'
 import serverListManager from './serverListManager'
+import AdmZip from 'adm-zip'
 
 interface UserData {
   username: string
@@ -21,6 +22,13 @@ class GameManager {
 
   constructor() {
     this.launcher = new Client()
+  }
+
+  private getResourcePath(filename: string): string {
+    if (app.isPackaged) {
+      return path.join(process.resourcesPath, 'resources', filename)
+    }
+    return path.join(process.cwd(), 'resources', filename)
   }
 
   private getForgeInstallerPath(): string {
@@ -46,6 +54,8 @@ class GameManager {
       name: 'TinCraft Server',
       ip: 'tincraft.minerent.io'
     })
+
+    await this.ensureLibraries(rootPath, onProgress)
 
     if (!fs.existsSync(forgeInstaller)) {
       throw new Error('Forge Installer не найден! Проверьте обновление.')
@@ -75,9 +85,7 @@ class GameManager {
       },
       window: {
         fullscreen: fullscreen
-      },
-      clientPackage: 'https://tincraft.ru/updates/libraries.zip',
-      removePackage: true
+      }
     }
 
     console.log('options', opts)
@@ -125,6 +133,51 @@ class GameManager {
       console.log(`Minecraft closed with a code: ${code}`)
       onGameClosed(code || 0)
     })
+  }
+  async hardResetGame(onProgress: ProgressCallback): Promise<void> {
+    const rootPath = path.join(app.getPath('userData'), 'minecraft_data')
+
+    const foldersToDelete = ['libraries', 'assets', 'versions', 'mods', 'config', 'webcache2']
+
+    if (!fs.existsSync(rootPath)) {
+      return
+    }
+
+    onProgress('Очистка системных файлов...', 0)
+
+    for (const folder of foldersToDelete) {
+      const target = path.join(rootPath, folder)
+      if (await fs.pathExists(target)) {
+        console.log(`Deleting: ${target}`)
+        await fs.remove(target)
+      }
+    }
+
+    onProgress('Очистка завершена. Готов к переустановке.', 100)
+  }
+
+  private async ensureLibraries(rootPath: string, onProgress: ProgressCallback): Promise<void> {
+    const libFolder = path.join(rootPath, 'libraries')
+    const zipPath = this.getResourcePath('libraries.zip')
+
+    if (await fs.pathExists(libFolder)) {
+      return
+    }
+
+    if (!fs.existsSync(zipPath)) {
+      console.warn('libraries.zip не найден в ресурсах, будет выполнена полная загрузка из сети.')
+      return
+    }
+
+    onProgress('Распаковка библиотек...', 0)
+    try {
+      const zip = new AdmZip(zipPath)
+      zip.extractAllTo(rootPath, true)
+
+      onProgress('Библиотеки успешно распакованы!', 100)
+    } catch (e) {
+      console.error('Ошибка распаковки libraries.zip:', e)
+    }
   }
 }
 

@@ -36,6 +36,7 @@ interface LauncherAPI {
   launchGame: (javaPath: string, username: string) => Promise<void>
   onLaunchProgress: (callback: any) => () => void
   onGameClosed: (callback: (data: { code: number }) => void) => () => void
+  hardReset: () => Promise<void>
 
   fetch: <T = any>(
     url: string,
