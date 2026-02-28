@@ -71,7 +71,6 @@ const api = {
       ipcRenderer.removeListener('main-log', listener)
     }
   }
-
 }
 
 if (process.contextIsolated) {

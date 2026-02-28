@@ -67,8 +67,7 @@ class GameManager {
     const fullScreen = store.get('settings.fullScreen', false)
 
     logToRenderer('fullScreen', fullScreen)
-    console.log('fullScreen', fullScreen);
-    
+    console.log('fullScreen', fullScreen)
 
     const opts: ILauncherOptions = {
       authorization: {
