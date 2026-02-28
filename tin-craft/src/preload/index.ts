@@ -63,7 +63,15 @@ const api = {
     const sub = (_: any, data: any) => callback(data)
     ipcRenderer.on('game-closed', sub)
     return () => ipcRenderer.removeListener('game-closed', sub)
+  },
+  onMainLog: (callback: (msg: string) => void) => {
+    const listener = (_: unknown, msg: string) => callback(msg)
+    ipcRenderer.on('main-log', listener)
+    return () => {
+      ipcRenderer.removeListener('main-log', listener)
+    }
   }
+
 }
 
 if (process.contextIsolated) {

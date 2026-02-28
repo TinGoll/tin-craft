@@ -4,6 +4,7 @@ import bg from '../../assets/tincraft_bg.png'
 import title from '../../assets/tincraft_title.png'
 import front from '../../assets/tincraft_front.png'
 import { TitleBar } from '../title-bar'
+// import { Logger } from '@renderer/features/logger'
 
 type Props = {
   children: ReactNode
@@ -12,6 +13,7 @@ type Props = {
 export const Layout: FC<Props> = ({ children }) => {
   return (
     <div className={styles.layout}>
+      {/* <Logger /> */}
       <div className={styles.titleBar}>
         <TitleBar />
       </div>

@@ -37,6 +37,7 @@ interface LauncherAPI {
   onLaunchProgress: (callback: any) => () => void
   onGameClosed: (callback: (data: { code: number }) => void) => () => void
   hardReset: () => Promise<void>
+  onMainLog: (callback: (msg: string) => void) => () => void
 
   fetch: <T = any>(
     url: string,

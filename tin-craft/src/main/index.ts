@@ -43,8 +43,21 @@ function createWindow(): void {
   }
 }
 
+export function logToRenderer(...args: unknown[]): void {
+  const message = args
+    .map((a) => (typeof a === 'string' ? a : JSON.stringify(a, null, 2)))
+    .join(' ')
+
+  console.log(...args)
+
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('main-log', message)
+  }
+}
+
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.electron')
+
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })

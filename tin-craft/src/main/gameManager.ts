@@ -7,6 +7,7 @@ import fs from 'fs-extra'
 import store from './store'
 import serverListManager from './serverListManager'
 import AdmZip from 'adm-zip'
+import { logToRenderer } from '.'
 
 interface UserData {
   username: string
@@ -63,7 +64,11 @@ class GameManager {
 
     const memoryMax = store.get('maxMemory', '4G')
     const memoryMin = store.get('minMemory', '2G')
-    const fullscreen = store.get('settings.fullscreen', false)
+    const fullScreen = store.get('settings.fullScreen', false)
+
+    logToRenderer('fullScreen', fullScreen)
+    console.log('fullScreen', fullScreen);
+    
 
     const opts: ILauncherOptions = {
       authorization: {
@@ -84,7 +89,7 @@ class GameManager {
         identifier: 'tincraft.minerent.io'
       },
       window: {
-        fullscreen: fullscreen
+        fullscreen: fullScreen
       }
     }
 
@@ -160,12 +165,20 @@ class GameManager {
     const libFolder = path.join(rootPath, 'libraries')
     const zipPath = this.getResourcePath('libraries.zip')
 
+    logToRenderer('[LOG]', 'Проверка библиотек...')
+    logToRenderer('[LOG]', 'libFolder: ' + libFolder)
+    logToRenderer('[LOG]', 'zipPath: ' + zipPath)
+
     if (await fs.pathExists(libFolder)) {
       return
     }
 
     if (!fs.existsSync(zipPath)) {
       console.warn('libraries.zip не найден в ресурсах, будет выполнена полная загрузка из сети.')
+      logToRenderer(
+        '[WARN]',
+        'libraries.zip не найден в ресурсах, будет выполнена полная загрузка из сети.'
+      )
       return
     }
 
@@ -177,6 +190,11 @@ class GameManager {
       onProgress('Библиотеки успешно распакованы!', 100)
     } catch (e) {
       console.error('Ошибка распаковки libraries.zip:', e)
+      logToRenderer(
+        '[WARN]',
+        'libraries.zip не найден в ресурсах, будет выполнена полная загрузка из сети.',
+        e
+      )
     }
   }
 }
