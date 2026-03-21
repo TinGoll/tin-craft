@@ -10,7 +10,7 @@ const BUILD_DIR = path.join(__dirname, 'server-build')
 const SOURCE_DIR = path.join(__dirname, 'resources')
 const BASE_URL = 'https://tincraft.ru/updates'
 
-const INCLUDE_FOLDERS = ['mods', 'config']
+const INCLUDE_FOLDERS = ['mods', 'config', 'shaderpacks']
 const INCLUDE_FILES = ['forge-installer.jar', 'options.txt']
 const IGNORE_PATTERNS = ['.DS_Store', 'Thumbs.db']
 
