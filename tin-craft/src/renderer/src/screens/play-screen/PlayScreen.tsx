@@ -145,7 +145,7 @@ export const PlayScreen: FC = () => {
             onClick={() => handlePlay(offline)}
           >
             {isCheckingServer
-              ? 'Проверка сервера...'
+              ? 'Проверка...'
               : isLocked
                 ? 'Загрузка...'
                 : offline
