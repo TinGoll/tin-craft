@@ -40,7 +40,8 @@ class GameManager {
     javaPath: string,
     userData: UserData,
     onProgress: ProgressCallback,
-    onGameClosed: ClosedCallback
+    onGameClosed: ClosedCallback,
+    offline = false
   ): Promise<void> {
     const rootPath = path.join(app.getPath('userData'), 'minecraft_data')
     const forgeInstaller = this.getForgeInstallerPath()
@@ -51,10 +52,12 @@ class GameManager {
     this.launcher.removeAllListeners('data')
     this.launcher.removeAllListeners('close')
 
-    await serverListManager.addServerToList(rootPath, {
-      name: 'TinCraft Server',
-      ip: 'tincraft.minerent.io'
-    })
+    if (!offline) {
+      await serverListManager.addServerToList(rootPath, {
+        name: 'TinCraft Server',
+        ip: 'tincraft.minerent.io'
+      })
+    }
 
     await this.ensureLibraries(rootPath, onProgress)
 
@@ -83,10 +86,14 @@ class GameManager {
       version: { number: '1.21.1', type: 'release' },
       forge: forgeInstaller,
       memory: { max: memoryMax, min: memoryMin },
-      quickPlay: {
-        type: 'multiplayer',
-        identifier: 'tincraft.minerent.io'
-      },
+      ...(offline
+        ? {}
+        : {
+            quickPlay: {
+              type: 'multiplayer' as const,
+              identifier: 'tincraft.minerent.io'
+            }
+          }),
       window: {
         fullscreen: fullScreen
       }

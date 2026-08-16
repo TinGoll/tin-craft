@@ -4,16 +4,20 @@ import { Input } from '../../../components/inputs'
 import { AiFillSkin } from 'react-icons/ai'
 import { FaLock } from 'react-icons/fa6'
 import { useLogin } from '../api'
-import { useAuthActions } from '../selectors'
+import { useAuthActions, useLastSuccessLoginUsers } from '../selectors'
 import { Button } from '@renderer/components/buttons'
 import { AuthScreenMode, setScreenMode } from '@renderer/screens'
 import { LAST_SUCCESS_LOGIN_USERS_KEY } from '../types'
+import { useServerAvailability } from '@renderer/hooks'
 
 export const LoginForm: FC = () => {
   const { login, addSuccessLoginUser } = useAuthActions()
+  const lastSuccessLoginUsers = useLastSuccessLoginUsers()
+  const isServerAvailable = useServerAvailability()
 
   const [loginValue, setLoginValue] = useState('')
   const [password, setPassword] = useState('')
+  const [offlineError, setOfflineError] = useState<string | null>(null)
   const autofilledRef = useRef(false)
 
   useEffect(() => {
@@ -36,6 +40,19 @@ export const LoginForm: FC = () => {
     e.preventDefault()
 
     if (!loginValue || !password) {
+      return
+    }
+
+    setOfflineError(null)
+
+    if (isServerAvailable === false) {
+      const savedPassword = lastSuccessLoginUsers[loginValue.toLowerCase()]
+      if (!savedPassword || savedPassword !== password) {
+        setOfflineError('Офлайн-вход доступен только для ранее авторизованного аккаунта')
+        return
+      }
+
+      await login(loginValue, 'offline_token')
       return
     }
 
@@ -72,13 +89,32 @@ export const LoginForm: FC = () => {
           autoComplete="current-password"
           icon={<FaLock />}
         />
-        {isError && <p className={styles.error}>{error || 'Неверные учетные данные'}</p>}
+        {isServerAvailable === false && (
+          <p className={styles.notice}>Сервер недоступен. Доступен вход в сохранённый аккаунт.</p>
+        )}
+        {(offlineError || isError) && (
+          <p className={styles.error}>{offlineError || error || 'Неверные учетные данные'}</p>
+        )}
       </div>
       <div className={styles.buttons}>
-        <Button style={{ flex: 1 }} variant="primary" type="submit" disabled={isLoading}>
-          Войти
+        <Button
+          style={{ flex: 1 }}
+          variant={isServerAvailable === false ? 'secondary' : 'primary'}
+          type="submit"
+          loading={isLoading || isServerAvailable === null}
+        >
+          {isServerAvailable === null
+            ? 'Проверка сервера...'
+            : isServerAvailable
+              ? 'Войти'
+              : 'Войти офлайн'}
         </Button>
-        <Button variant="secondary" onClick={() => setScreenMode(AuthScreenMode.register)}>
+        <Button
+          variant="secondary"
+          type="button"
+          disabled={isServerAvailable !== true}
+          onClick={() => setScreenMode(AuthScreenMode.register)}
+        >
           Регистрация
         </Button>
       </div>

@@ -15,8 +15,10 @@ import {
 } from './model/play-screen.store'
 import { Hint, ProgressBar } from '@renderer/components'
 import { useMinecraftHints } from './hooks/useMinecraftHints'
+import { useServerAvailability } from '@renderer/hooks'
 
 export const PlayScreen: FC = () => {
+  const isServerAvailable = useServerAvailability()
   const { logout, setHasFirstLaunch } = useAuthActions()
   const nickname = useAuthUser()
   const isBusy = useIsBusy()
@@ -56,7 +58,7 @@ export const PlayScreen: FC = () => {
     }
   }, [])
 
-  const handlePlay = async (): Promise<void> => {
+  const handlePlay = async (offline = false): Promise<void> => {
     if (!nickname) {
       setStatus('Ошибка: пользователь не найден')
       return
@@ -86,13 +88,15 @@ export const PlayScreen: FC = () => {
       }
 
       // 2. ОБНОВЛЕНИЯ
-      setStatus('Проверка обновлений...')
-      const unsubUpdate = window.api.onUpdateProgress((data) => {
-        setStatus(data.status)
-        setProgress(data.percent)
-      })
-      await window.api.updateGame()
-      unsubUpdate()
+      if (!offline) {
+        setStatus('Проверка обновлений...')
+        const unsubUpdate = window.api.onUpdateProgress((data) => {
+          setStatus(data.status)
+          setProgress(data.percent)
+        })
+        await window.api.updateGame()
+        unsubUpdate()
+      }
 
       // 3. ЗАПУСК
       setStatus('Инициализация запуска...')
@@ -106,9 +110,9 @@ export const PlayScreen: FC = () => {
 
       setIsPlaying(true)
 
-      await window.api.launchGame(javaPath, nickname)
+      await window.api.launchGame(javaPath, nickname, offline)
       setProgress(100)
-      setStatus('Игра запущена! Приятной игры.')
+      setStatus(offline ? 'Игра запущена в офлайн-режиме!' : 'Игра запущена! Приятной игры.')
       unsubLaunch()
       setHasFirstLaunch(true)
     } catch (error) {
@@ -120,6 +124,8 @@ export const PlayScreen: FC = () => {
   }
 
   const isLocked = isBusy || isPlaying
+  const isCheckingServer = isServerAvailable === null
+  const offline = isServerAvailable === false
 
   return (
     <div className={styles.screen}>
@@ -132,8 +138,19 @@ export const PlayScreen: FC = () => {
           <ProgressBar progress={progress} status={status} />
         </div>
         <div className={styles.buttons}>
-          <Button style={{ flex: 1 }} loading={isLocked} variant="primary" onClick={handlePlay}>
-            {isLocked ? 'Загрузка...' : 'Играть'}
+          <Button
+            style={{ flex: 1 }}
+            loading={isLocked || isCheckingServer}
+            variant={offline ? 'secondary' : 'primary'}
+            onClick={() => handlePlay(offline)}
+          >
+            {isCheckingServer
+              ? 'Проверка сервера...'
+              : isLocked
+                ? 'Загрузка...'
+                : offline
+                  ? 'Офлайн'
+                  : 'Играть'}
           </Button>
           <Button disabled={isLocked} variant="danger" onClick={logout}>
             Выход

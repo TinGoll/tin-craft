@@ -24,6 +24,13 @@
     1px 1px 0 rgba(0, 0, 0, 0.5);
 }
 
+.notice {
+  color: gold;
+  text-shadow:
+    1px 1px 0 #000,
+    1px 1px 0 rgba(0, 0, 0, 0.5);
+}
+
 .title {
   margin: 0;
   font-size: 24px;

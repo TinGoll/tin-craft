@@ -33,7 +33,7 @@ interface LauncherAPI {
   onJavaProgress: (callback: (data: { status: string; percent: number }) => void) => () => void
   updateGame: () => void
   onUpdateProgress: (callback: (data: { status: string; percent: number }) => void) => () => void
-  launchGame: (javaPath: string, username: string) => Promise<void>
+  launchGame: (javaPath: string, username: string, offline?: boolean) => Promise<void>
   onLaunchProgress: (callback: any) => () => void
   onGameClosed: (callback: (data: { code: number }) => void) => () => void
   hardReset: () => Promise<void>
@@ -47,6 +47,7 @@ interface LauncherAPI {
     data: T | null
     error: string | null
   }>
+  checkServerAvailability: (url: string) => Promise<boolean>
 
   store: {
     get<T = any>(key: string): Promise<T>

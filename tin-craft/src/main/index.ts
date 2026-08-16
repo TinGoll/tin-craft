@@ -6,7 +6,6 @@ import icon from '../../resources/icon.png?asset'
 
 import javaManager from './javaManager'
 import gameManager from './gameManager'
-import updateManager from './UpdateManager'
 import store from './store'
 
 let mainWindow: BrowserWindow | null = null
@@ -176,6 +175,23 @@ app.whenReady().then(() => {
     }
   })
 
+  ipcMain.handle('check-server-availability', async (_, url: string) => {
+    try {
+      const serverUrl = new URL(url)
+      if (!['http:', 'https:'].includes(serverUrl.protocol)) {
+        return false
+      }
+
+      await fetch(serverUrl, {
+        method: 'HEAD',
+        signal: AbortSignal.timeout(5000)
+      })
+      return true
+    } catch {
+      return false
+    }
+  })
+
   ipcMain.handle('get-settings', () => store.store)
   ipcMain.handle('save-setting', (_, key, value) => store.set(key, value))
 
@@ -199,7 +215,7 @@ app.whenReady().then(() => {
     }
   })
 
-  ipcMain.handle('update-game', async (event) => {
+  ipcMain.handle('update-game', async () => {
     try {
       // await updateManager.checkForUpdates((status, percent) => {
       //   event.sender.send('update-progress', { status, percent })
@@ -213,7 +229,7 @@ app.whenReady().then(() => {
 
   ipcMain.handle(
     'launch-game',
-    async (event: IpcMainInvokeEvent, javaPath: string, username: string) => {
+    async (event: IpcMainInvokeEvent, javaPath: string, username: string, offline = false) => {
       const user = {
         username: username,
         uuid: '00000000-0000-0000-0000-000000000000',
@@ -231,7 +247,8 @@ app.whenReady().then(() => {
           if (win && !win.isDestroyed()) {
             win.webContents.send('game-closed', { code })
           }
-        }
+        },
+        offline
       )
     }
   )

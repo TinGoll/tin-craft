@@ -26,6 +26,8 @@ const api = {
       data: T | null
       error: string | null
     }>,
+  checkServerAvailability: (url: string): Promise<boolean> =>
+    ipcRenderer.invoke('check-server-availability', url),
 
   store: {
     get: <T = any>(key: string): Promise<T> => ipcRenderer.invoke('store:get', key),
@@ -52,8 +54,8 @@ const api = {
     ipcRenderer.on('update-progress', sub)
     return () => ipcRenderer.removeListener('update-progress', sub)
   },
-  launchGame: (javaPath: string, username: string) =>
-    ipcRenderer.invoke('launch-game', javaPath, username),
+  launchGame: (javaPath: string, username: string, offline = false) =>
+    ipcRenderer.invoke('launch-game', javaPath, username, offline),
   onLaunchProgress: (callback: any) => {
     const sub = (_: any, data: any) => callback(data)
     ipcRenderer.on('launch-progress', sub)
