@@ -201,9 +201,9 @@ app.whenReady().then(() => {
 
   ipcMain.handle('update-game', async (event) => {
     try {
-      await updateManager.checkForUpdates((status, percent) => {
-        event.sender.send('update-progress', { status, percent })
-      })
+      // await updateManager.checkForUpdates((status, percent) => {
+      //   event.sender.send('update-progress', { status, percent })
+      // })
       return true
     } catch (e) {
       console.error(e)
